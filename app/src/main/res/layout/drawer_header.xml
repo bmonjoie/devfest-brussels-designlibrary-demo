@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="192dp">
+
+    <ImageView
+        android:scaleType="fitXY"
+        android:src="@drawable/gde_dummy"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageView
+        android:layout_gravity="center"
+        android:contentDescription="@string/logo_description"
+        android:src="@drawable/logo"
+        android:scaleType="fitCenter"
+        android:layout_width="150dp"
+        android:layout_height="50dp" />
+</FrameLayout>

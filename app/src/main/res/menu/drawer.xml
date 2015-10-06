@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/menu_talks"
+            android:checked="true"
+            android:title="@string/menu_talks"
+            android:icon="@drawable/ic_menu_talks" />
+        <item
+            android:id="@+id/menu_speakers"
+            android:title="@string/menu_speakers"
+            android:icon="@drawable/ic_menu_speakers" />
+        <item
+            android:id="@+id/menu_map"
+            android:title="@string/menu_map"
+            android:icon="@drawable/ic_menu_map" />
+
+        <item
+            android:id="@+id/menu_about"
+            android:title="@string/menu_about"
+            android:icon="@drawable/ic_menu_about" />
+    </group>
+</menu>
