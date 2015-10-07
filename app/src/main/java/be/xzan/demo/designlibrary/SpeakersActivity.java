@@ -2,9 +2,11 @@ package be.xzan.demo.designlibrary;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,13 +15,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import be.xzan.demo.designlibrary.common.activities.RefreshableDrawerActivity;
-import be.xzan.demo.designlibrary.common.loaders.ATTalkAndSpeakerLoaderWithRefreshLayout;
-import be.xzan.demo.designlibrary.data.Speaker;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+
+import be.xzan.demo.designlibrary.common.activities.RefreshableDrawerActivity;
+import be.xzan.demo.designlibrary.common.loaders.ATTalkAndSpeakerLoaderWithRefreshLayout;
+import be.xzan.demo.designlibrary.data.Speaker;
 
 public class SpeakersActivity extends RefreshableDrawerActivity implements LoaderManager.LoaderCallbacks<List<Speaker>> {
 
@@ -80,22 +83,7 @@ public class SpeakersActivity extends RefreshableDrawerActivity implements Loade
 
     @Override
     public Loader<List<Speaker>> onCreateLoader(int id, Bundle args) {
-        return new ATTalkAndSpeakerLoaderWithRefreshLayout<List<Speaker>>(this, getRefreshLayout(), args != null && args.getBoolean(FORCE_REFRESH, false)) {
-            @Override
-            public List<Speaker> loadInBackground() {
-                try {
-                    List<Speaker> speakers = mHelper.getSpeakerDAO().queryForAll();
-                    if (speakers == null || speakers.isEmpty() || isForceRefresh()) {
-                        loadTalksAndSessionAndSave();
-                        speakers = mHelper.getSpeakerDAO().queryForAll();
-                    }
-                    return speakers;
-                } catch (SQLException|IOException e) {
-                    e.printStackTrace();
-                }
-                return  null;
-            }
-        };
+        return new SpeakersLoader(this, getRefreshLayout(), args != null && args.getBoolean(FORCE_REFRESH, false));
     }
 
     @Override
@@ -142,6 +130,28 @@ public class SpeakersActivity extends RefreshableDrawerActivity implements Loade
         @Override
         public void onClick(View v) {
             SpeakerDetailActivity.startActivity(mActivity, ivPicture, mSpeaker);
+        }
+    }
+
+    private static class SpeakersLoader extends ATTalkAndSpeakerLoaderWithRefreshLayout<List<Speaker>> {
+
+        public SpeakersLoader(Context context, SwipeRefreshLayout refreshLayout, boolean forceRefresh) {
+            super(context, refreshLayout, forceRefresh);
+        }
+
+        @Override
+        public List<Speaker> loadInBackground() {
+            try {
+                List<Speaker> speakers = mHelper.getSpeakerDAO().queryForAll();
+                if (speakers == null || speakers.isEmpty() || isForceRefresh()) {
+                    loadTalksAndSessionAndSave();
+                    speakers = mHelper.getSpeakerDAO().queryForAll();
+                }
+                return speakers;
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 }

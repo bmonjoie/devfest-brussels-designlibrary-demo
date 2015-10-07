@@ -1,5 +1,6 @@
 package be.xzan.demo.designlibrary;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,7 +70,7 @@ public class TalksActivity extends RefreshableDrawerActivity implements TabLayou
                 if (mTalks == null) {
                     mTalks = new ArrayList<>();
                     if (mAllTalks != null) {
-                        for (int i = 0; i < mAllTalks.size() ; i++) {
+                        for (int i = 0; i < mAllTalks.size(); i++) {
                             Talk t = mAllTalks.get(i);
                             if (Arrays.asList(t.tags).contains(mSelectedDay)) {
                                 mTalks.add(t);
@@ -119,26 +121,7 @@ public class TalksActivity extends RefreshableDrawerActivity implements TabLayou
 
     @Override
     public Loader<List<Talk>> onCreateLoader(int id, Bundle args) {
-        return new ATTalkAndSpeakerLoaderWithRefreshLayout<List<Talk>>(this, getRefreshLayout(), args != null && args.getBoolean(FORCE_REFRESH, false)) {
-            public List<Talk> getTalks() throws SQLException{
-                return mHelper.getTalkDAO().queryBuilder().orderBy(Talk.TIME_COLUMN, true).query();
-            }
-
-            @Override
-            public List<Talk> loadInBackground() {
-                try {
-                    List<Talk> talks = getTalks();
-                    if (talks == null || talks.isEmpty() || isForceRefresh()) {
-                        loadTalksAndSessionAndSave();
-                        talks = getTalks();
-                    }
-                    return talks;
-                } catch (SQLException|IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        };
+        return new TalksLoader(this, getRefreshLayout(), args != null && args.getBoolean(FORCE_REFRESH, false));
     }
 
     @Override
@@ -189,6 +172,32 @@ public class TalksActivity extends RefreshableDrawerActivity implements TabLayou
             tvName.setText(talk.name);
             tvTime.setText(talk.time);
             tvSpeaker.setText(talk.getSpeakers());
+        }
+    }
+
+    private static class TalksLoader extends ATTalkAndSpeakerLoaderWithRefreshLayout<List<Talk>> {
+
+        public TalksLoader(Activity activity, SwipeRefreshLayout refreshLayout, boolean forceRefresh) {
+            super(activity, refreshLayout, forceRefresh);
+        }
+
+        public List<Talk> getTalks() throws SQLException {
+            return mHelper.getTalkDAO().queryBuilder().orderBy(Talk.TIME_COLUMN, true).query();
+        }
+
+        @Override
+        public List<Talk> loadInBackground() {
+            try {
+                List<Talk> talks = getTalks();
+                if (talks == null || talks.isEmpty() || isForceRefresh()) {
+                    loadTalksAndSessionAndSave();
+                    talks = getTalks();
+                }
+                return talks;
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 }

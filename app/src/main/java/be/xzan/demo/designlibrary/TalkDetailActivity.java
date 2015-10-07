@@ -1,5 +1,6 @@
 package be.xzan.demo.designlibrary;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -12,14 +13,14 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 import be.xzan.demo.designlibrary.adapters.SpeakerListAdapter;
 import be.xzan.demo.designlibrary.common.activities.BackEnabledActivity;
 import be.xzan.demo.designlibrary.common.loaders.ATTalkAndSpeakerLoaderWithProgressDialog;
 import be.xzan.demo.designlibrary.data.Speaker;
 import be.xzan.demo.designlibrary.data.Talk;
-
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * Created on 29/09/15 for DesignLibrary
@@ -82,22 +83,7 @@ public class TalkDetailActivity extends BackEnabledActivity implements View.OnCl
 
     @Override
     public Loader<Talk> onCreateLoader(int id, Bundle args) {
-        return new ATTalkAndSpeakerLoaderWithProgressDialog<Talk>(this) {
-            @Override
-            public Talk loadInBackground() {
-                try {
-                    Talk talk = mHelper.getTalkDAO().queryForId(getIntent().getIntExtra(TALK_ID, -1));
-                    if (talk == null) {
-                        loadTalksAndSessionAndSave();
-                        talk = mHelper.getTalkDAO().queryForId(getIntent().getIntExtra(TALK_ID, -1));
-                    }
-                    return talk;
-                } catch (SQLException|IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        };
+        return new TalkDetailLoader(this, getIntent().getIntExtra(TALK_ID, -1));
     }
 
     @Override
@@ -116,5 +102,30 @@ public class TalkDetailActivity extends BackEnabledActivity implements View.OnCl
     @Override
     public void onLoaderReset(Loader<Talk> loader) {
 
+    }
+
+    private static class TalkDetailLoader extends ATTalkAndSpeakerLoaderWithProgressDialog<Talk> {
+
+        private final int mTalkId;
+
+        public TalkDetailLoader(Activity activity, int talkId) {
+            super(activity);
+            mTalkId = talkId;
+        }
+
+        @Override
+        public Talk loadInBackground() {
+            try {
+                Talk talk = mHelper.getTalkDAO().queryForId(mTalkId);
+                if (talk == null) {
+                    loadTalksAndSessionAndSave();
+                    talk = mHelper.getTalkDAO().queryForId(mTalkId);
+                }
+                return talk;
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }

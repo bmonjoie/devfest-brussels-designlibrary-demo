@@ -74,23 +74,7 @@ public class SpeakerDetailActivity extends BackEnabledActivity implements Loader
 
     @Override
     public Loader<Speaker> onCreateLoader(int id, Bundle args) {
-        return new ATTalkAndSpeakerLoaderWithProgressDialog<Speaker>(this) {
-
-            @Override
-            public Speaker loadInBackground() {
-                try {
-                    Speaker speaker = mHelper.getSpeakerDAO().queryForId(getIntent().getIntExtra(SPEAKER_ID, -1));
-                    if (speaker == null) {
-                        loadTalksAndSessionAndSave();
-                        speaker = mHelper.getSpeakerDAO().queryForId(getIntent().getIntExtra(SPEAKER_ID, -1));
-                    }
-                    return speaker;
-                } catch (SQLException|IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        };
+        return new SpeakerDetailLoader(this, getIntent().getIntExtra(SPEAKER_ID, -1));
     }
 
     @Override
@@ -109,5 +93,30 @@ public class SpeakerDetailActivity extends BackEnabledActivity implements Loader
     @Override
     public void onLoaderReset(Loader<Speaker> loader) {
 
+    }
+
+    private static class SpeakerDetailLoader extends ATTalkAndSpeakerLoaderWithProgressDialog<Speaker> {
+
+        private final int mSpeakerId;
+
+        public SpeakerDetailLoader(Activity activity, int speakerId) {
+            super(activity);
+            mSpeakerId = speakerId;
+        }
+
+        @Override
+        public Speaker loadInBackground() {
+            try {
+                Speaker speaker = mHelper.getSpeakerDAO().queryForId(mSpeakerId);
+                if (speaker == null) {
+                    loadTalksAndSessionAndSave();
+                    speaker = mHelper.getSpeakerDAO().queryForId(mSpeakerId);
+                }
+                return speaker;
+            } catch (SQLException | IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }
